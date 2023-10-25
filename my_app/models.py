@@ -81,8 +81,8 @@ class Book(models.Model):
     title = models.CharField(max_length=255, unique=True)
     author = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
+    discount = models.DecimalField(decimal_places=2, max_digits=2, null=True)
     price = models.DecimalField(max_digits=8, decimal_places=2)
-    discount = models.FloatField(max_length=2, null=True)
     inventory = models.PositiveSmallIntegerField(default=0)  # max is 32767
 
     def __str__(self) -> str:
@@ -92,7 +92,7 @@ class Book(models.Model):
     def sale_price(self):
         return round(self.price * 0.8, 2)
 
-    @property
-    def discount(self):
-        return round(float(self.price) * 0.2, 2)
+    # @property
+    # def discount(self):
+    #     return round(float(self.price) * 0.2, 2)
 # GO to admin.py to for registering models
