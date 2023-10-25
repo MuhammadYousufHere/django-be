@@ -9,7 +9,7 @@ data
 
 **/migrations/*
 !**migrations/__init__.py
-
+pgdata
 # Environments  
 .venv 
 env/ 
@@ -22,7 +22,7 @@ venv/
 !.vscode/launch.json 
 !.vscode/extensions.json 
 .history
-
+app/.env
 # Ignore coverage reports
 .coverage
 reports/
