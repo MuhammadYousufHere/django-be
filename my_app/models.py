@@ -32,7 +32,7 @@ class User(AbstractUser):
     REQUIRED_FIELDS = ['email']
     objects = UserManager()
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    uuid = models.UUIDField(primary_key=True, editable=False, unique=True)
     first_name = models.CharField(max_length=120)
     last_name = models.CharField(max_length=120)
     username = models.CharField(max_length=255, unique=True, db_index=True)
@@ -69,11 +69,16 @@ class User(AbstractUser):
             'access': str(refresh.access_token)
         }
 
+    @property
+    def group(self):
+        groups = self.groups.all()
+        return groups[0].name if groups else None
+
 
 class Book(models.Model):
     """table representation for the book"""
-    id = models.AutoField(primary_key=True)
-    title = models.CharField(max_length=255)
+    uuid = models.UUIDField(primary_key=True, editable=False, unique=True)
+    title = models.CharField(max_length=255, unique=True)
     author = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     price = models.DecimalField(max_digits=8, decimal_places=2)

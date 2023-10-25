@@ -1,0 +1,92 @@
+# for complex lookups
+from django.db.models import Q,F
+
+#Q => Query
+#F => Reference in the database
+q_set = Product.objects.filter(Q(inventory__lt=10))
+f_set = Product.objects.filter(F(inventory='unit_price'))
+# simple
+
+q_set = Product.objects.filter(inventory__lt=10)
+
+q_set2 = Product.objects.filter(inventory__lt=10).filter(unit_price__gt=20)
+
+print(list(q_set))
+
+-------------------------------------SORTING--------------------------------
+Product.objects.order_by('title') // asscending
+Product.objects.order_by('-title') // desscending
+Product.objects.order_by('price','-title') // desscending
+
+=> Can chain the methods
+Product.objects.filter(inventory__lt=4).order_by('price','-title') // desscending
+
+have methods like :
+  .reverse() => returns qset
+  .earliest() => returns object
+  .latest() => sorts descending order
+
+TIP:
+  when we evaluate the queryset by accessing through indexes or using list methods, it no loger are query set.
+
+-------------------LIMITING--------------------------------------------------
+ # dessending and limit by 2
+        # books = Book.objects.order_by('-title')[:2]
+        # pagginate
+        offset = 0
+        limit = 10
+        books = Book.objects.order_by('-title')[offset:limit]
+
+
+--------------------SELECTING------------------------------------------------
+Product.objects.values('id','title')
+retrive unique =?
+Product.objects.values('id','title').distinct()
+
+lookup in--
+Product.objects.filter(id__in=Product.objects.values('product_id').distinct()).order_by('title')
+
+-----------------DEFERERING FIELDS-------------------------------
+using only() --- BE CAUTIOS WHILE USING IT. or u will endup with extra unnessesary queries
+using defer() --- BE CAUTIOS WHILE USING IT. or u will endup with extra unnessesary queries
+Product.objects.only('id','title') ==> returns only id and title - the instance of class
+Product.objects.defer('id','title') ==> returns all except the id and title - instance of class
+
+
+------------------RELATED OBJECTS---------------------------------------------
+basically for relations - forign - one to one ---- many to many
+selecting the related objects while querying - for one instance
+Product.objects.select_related('collection').all()
+
+selecting the related objects while querying - for many instance
+Product.objects.prefetch_related('collection').all()
+
+---------------------AGGRIGATE--------------------------------------------
+resukt = Product.objects.aggrigate(count=Count('id'))
+
+---------------------ANNOTATE-----------------------------------------
+add additional attributs to objects while quering 
+
+from django.db.models import Value,F, Func
+
+this will add the additional field is_new to objects.
+
+Product.objects.annotate(is_new=Value(True))
+
+or refrence from it the new fileds
+
+Product.objects.annotate(new_id=F('id'))
+
+==
+annotate functions
+
+adds the new filed to object with the fullname attribute. - uses the function='FUCNAME' of database underlying engine functions 
+
+Product.objects.annotate(fullname=Func(F('first_name'),Value(' ').F('last_name'), function='CONCAT'))
+
+short way
+
+from django.db.models.functions import Concat
+Product.objects.annotate(fullname=Concat('first_name'),Value(' ').('last_name')))
+
+== grouping data

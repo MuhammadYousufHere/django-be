@@ -1,19 +1,35 @@
 from django.db import IntegrityError
+from django.db.models.aggregates import Avg, Count, Max, Min, Sum
 from django.forms.models import model_to_dict
+from django.contrib.auth import get_user_model
+from django.core.files.storage import FileSystemStorage
 from django.shortcuts import render, HttpResponse
 from django.http import HttpRequest, JsonResponse, QueryDict, Http404
-import json
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth.decorators import login_required
-from .models import *
-
 from django.core.exceptions import ValidationError
+from django.contrib.auth.decorators import login_required
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework import generics
+import json
+
+from .models import *
+from .serializers import LogInSerializer, UserSerializer, TokenObtainPairSerializer
 # Create your views here.
 
 
-def main(request):
-    # return HttpResponse('Hello world!')
-    return render(request, 'home.html')
+def main(request: HttpRequest):
+
+    if request.method == "POST" and request.FILES["image_file"]:
+        image_file = request.FILES["image_file"]
+        fs = FileSystemStorage()
+
+        filename = fs.save(image_file.name, image_file)
+        image_url = fs.url(filename)
+        print(image_url)
+        return render(request, "book.html", {
+            "image_url": image_url
+        })
+    return render(request, "book.html")
 
 
 @csrf_exempt
@@ -28,15 +44,42 @@ def profile(request: HttpRequest):
     ''
 
 
+class SignUpView(generics.CreateAPIView):
+    queryset = get_user_model().objects.all()
+    serializer_class = UserSerializer
+
+
+class LogInView(TokenObtainPairView):
+    serializer_class = LogInSerializer
+
+
 @csrf_exempt
 def books(request: HttpRequest):
     """Handling the book endpoint"""
     if (request.method == 'GET'):
         print('get books')
-        books = Book.objects.all().values()
+        print(User.objects.all().values())
+
+        # books = Book.objects.all().values()
+        # books = Book.objects.filter(title='Thinking Minds')
+        # books = Book.objects.filter(price__gt=20)
+        # dessending and limit by 2
+        # books = Book.objects.order_by('-title')[:2]
+        # pagginate
+        offset = 0
+        limit = 10
+        # books = Book.objects.order_by('-title')[offset:limit]
+        # Selecting
+
+        books = Book.objects.values('title', 'author', 'price')
+        # Read the inner joins or related
+        # values('collection__id') => returns the {} dictionary
+        # values_list('collection__id') => returns the tuple ('2','Thinking Minds')
+        books = Book.objects.values('title', 'author', 'price')
         # return a json - a list of all books
         # status = 200 is the default value
-        return JsonResponse(list(books), safe=False)
+        # return JsonResponse(list(books), safe=False)
+        return render(request, 'books.html', {'books': list(books), 'title': "Books"})
     elif request.method == 'POST':
         # for data send as json
         req_body = json.loads(request.body)

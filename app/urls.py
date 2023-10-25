@@ -20,4 +20,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     # for base url that kind of forward or redirect to the urls of project(my_app) views urls
     path('', include('my_app.urls'))
+
 ]

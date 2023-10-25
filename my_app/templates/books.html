@@ -1,0 +1,10 @@
+<html>
+  <body>
+    {% comment %} {% title %} Books {% endblock %} {% endcomment %}
+    <ul>
+      {% for book in books %}
+      <li>{{book.title}} by {{book.author}} only for ${{book.price}}</li>
+      {% endfor %}
+    </ul>
+  </body>
+</html>
